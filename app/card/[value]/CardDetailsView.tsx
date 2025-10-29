@@ -17,31 +17,23 @@ export default function CardDetailsView({ cardId }: { cardId: string }) {
     const fetchCard = async () => {
       setLoading(true);
       try {
-        // // const res = await fetch(`/api/card/${cardId}`);
-        // const json: CardDetail = await res.json();
-
-        // if (!res.ok) {
-        //     alert("Karte nicht gefunden");
-        //     setCard(null);
-        //     return;
-        // }
-        // setCard(json);
-
         const card = await tcgdex.card.get(cardId); // Beispiel-ID
 
         if (!card) {
-          //   alert("Karte nicht gefunden");
           setCard(null);
           return;
+          setLoading(false);
         }
         setCard(card);
         setImgUrl(card.getImageURL("high", "png"));
+        setLoading(false);
       } catch (error) {
         console.error("Fehler beim Laden der Karte", error);
         alert(
           "Es ist ein Fehler aufgetreten. Bitte versuche es später erneut."
         );
         setCard(null);
+        setLoading(false);
       }
     };
 
@@ -51,29 +43,43 @@ export default function CardDetailsView({ cardId }: { cardId: string }) {
   return (
     <div>
       <div>Card Detail View</div>
-      {card && (
-        <div>
-          <Image
-            width={200}
-            height={300}
-            src={imgUrl || ""}
-            alt={card.name}
-            className="mt-2"
-          />
-          <div>Name: {card.name}</div>
-          <div>Rarity: {card.rarity}</div>
-          <div>Category: {card.category}</div>
-          <div>Illustrator: {card.illustrator}</div>
-          <div>
-            Abilities:
-            <ul>
-              {card.abilities?.map((ability) => (
-                <li key={ability.name}>{ability.name}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      {loading ? <div>loading</div> : <Card imgUrl={imgUrl} card={card} />}
     </div>
   );
 }
+
+const Card = ({
+  imgUrl,
+  card,
+}: {
+  imgUrl: string | null;
+  card: CardDetail | null;
+}) => {
+  if (!card) {
+    return <div>No card found.</div>;
+  }
+
+  return (
+    <div>
+      <Image
+        width={200}
+        height={300}
+        src={imgUrl || ""}
+        alt={card.name}
+        className="mt-2"
+      />
+      <div>Name: {card.name}</div>
+      <div>Rarity: {card.rarity}</div>
+      <div>Category: {card.category}</div>
+      <div>Illustrator: {card.illustrator}</div>
+      <div>
+        Abilities:
+        <ul>
+          {card.abilities?.map((ability) => (
+            <li key={ability.name}>{ability.name}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
